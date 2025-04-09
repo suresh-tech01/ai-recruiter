@@ -1,0 +1,1898 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Job Screening System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- FullCalendar CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css">
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2c3e50;
+            --accent-color: #e74c3c;
+            --light-color: #ecf0f1;
+            --dark-color: #34495e;
+            --success-color: #2ecc71;
+            --warning-color: #f39c12;
+            --danger-color: #e74c3c;
+            --info-color: #3498db;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f7fa;
+            color: var(--secondary-color);
+        }
+        
+        /* Sidebar */
+        .sidebar {
+            background-color: var(--secondary-color);
+            color: white;
+            height: 100vh;
+            position: fixed;
+            padding-top: 20px;
+            width: 250px;
+        }
+        
+        .sidebar .logo {
+            width: 80px;
+            height: auto;
+            margin-bottom: 10px;
+        }
+        
+        .sidebar .nav-link {
+            color: var(--light-color);
+            margin-bottom: 5px;
+            border-radius: 5px;
+            padding: 10px 15px;
+            transition: all 0.3s;
+        }
+        
+        .sidebar .nav-link:hover, .sidebar .nav-link.active {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .sidebar .nav-link i {
+            margin-right: 10px;
+            width: 20px;
+            text-align: center;
+        }
+        
+        /* Main Content */
+        .main-content {
+            margin-left: 250px;
+            padding: 20px;
+        }
+        
+        /* Cards */
+        .card {
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            transition: transform 0.3s;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .card-header {
+            background-color: white;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+            padding: 15px 20px;
+            border-radius: 10px 10px 0 0 !important;
+        }
+        
+        .card-header h5 {
+            margin-bottom: 0;
+        }
+        
+        /* Stats Cards */
+        .stats-card {
+            text-align: center;
+            padding: 20px;
+            border-radius: 10px;
+        }
+        
+        .stats-card .number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--primary-color);
+            margin-bottom: 5px;
+        }
+        
+        .stats-card .label {
+            color: var(--dark-color);
+            font-size: 0.9rem;
+        }
+        
+        /* Activity Feed */
+        .activity-feed {
+            padding-left: 0;
+            list-style: none;
+        }
+        
+        .activity-item {
+            position: relative;
+            padding-bottom: 20px;
+            padding-left: 30px;
+            border-left: 2px solid #eee;
+        }
+        
+        .activity-item:last-child {
+            padding-bottom: 0;
+        }
+        
+        .activity-icon {
+            position: absolute;
+            left: -15px;
+            top: 0;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+        
+        .activity-content {
+            padding-bottom: 10px;
+        }
+        
+        .activity-content small {
+            display: block;
+            margin-top: 5px;
+        }
+        
+        /* Progress Bars */
+        .progress {
+            height: 10px;
+            border-radius: 5px;
+        }
+        
+        .match-high {
+            background-color: var(--success-color);
+        }
+        
+        .match-medium {
+            background-color: var(--warning-color);
+        }
+        
+        .match-low {
+            background-color: var(--danger-color);
+        }
+        
+        /* Badges */
+        .badge-match {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        /* Search Box */
+        .search-box {
+            position: relative;
+            width: 250px;
+        }
+        
+        .search-box input {
+            padding-left: 40px;
+            border-radius: 20px;
+        }
+        
+        .search-box i {
+            position: absolute;
+            left: 15px;
+            top: 12px;
+            color: #7f8c8d;
+        }
+        
+        /* Avatar */
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        
+        .avatar-lg {
+            width: 80px;
+            height: 80px;
+        }
+        
+        /* Tables */
+        .table {
+            margin-bottom: 0;
+        }
+        
+        .table th {
+            border-top: none;
+            font-weight: 600;
+            color: var(--dark-color);
+        }
+        
+        /* Buttons */
+        .btn {
+            border-radius: 5px;
+            padding: 8px 16px;
+            font-weight: 500;
+        }
+        
+        .btn-sm {
+            padding: 5px 10px;
+            font-size: 0.8rem;
+        }
+        
+        /* Candidate Detail Specific */
+        .candidate-detail-card {
+            border-left: 4px solid var(--primary-color);
+        }
+        
+        .skill-tag {
+            margin-right: 5px;
+            margin-bottom: 5px;
+            display: inline-block;
+        }
+        
+        .match-score {
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+        
+        .resume-preview {
+            height: 500px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        
+        /* Analytics Specific */
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin-bottom: 20px;
+        }
+        
+        .insight-card {
+            border-left: 4px solid var(--primary-color);
+            padding: 15px;
+            margin-bottom: 20px;
+            background-color: white;
+            border-radius: 5px;
+        }
+        
+        .insight-card h5 {
+            color: var(--primary-color);
+        }
+        
+        .metric-card {
+            text-align: center;
+            padding: 20px;
+            border-radius: 5px;
+            background-color: white;
+            margin-bottom: 20px;
+        }
+        
+        .metric-card .metric-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+        
+        .metric-card .metric-label {
+            color: var(--dark-color);
+            font-size: 0.9rem;
+        }
+        
+        /* Interviews Specific */
+        .calendar-container {
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .interview-card {
+            border-left: 4px solid var(--primary-color);
+            margin-bottom: 15px;
+        }
+        
+        .interview-card.upcoming {
+            border-left-color: var(--success-color);
+        }
+        
+        .interview-card.completed {
+            border-left-color: var(--secondary-color);
+        }
+        
+        .interview-card.canceled {
+            border-left-color: var(--danger-color);
+        }
+        
+        .feedback-rating {
+            font-size: 1.5rem;
+            color: var(--warning-color);
+        }
+        
+        /* Page Transitions */
+        .page {
+            display: none;
+        }
+        
+        .page.active {
+            display: block;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 100%;
+                height: auto;
+                position: relative;
+            }
+            .main-content {
+                margin-left: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <nav id="sidebar" class="col-md-3 col-lg-2 d-md-block sidebar">
+                <div class="text-center mb-4">
+                    <img src="ai.webp" alt="AI Recruiter" class="logo">
+                    <h4>AI Recruiter</h4>
+                </div>
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#" data-page="dashboard">
+                            <i class="fas fa-tachometer-alt"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" data-page="jobs">
+                            <i class="fas fa-briefcase"></i> Job Postings
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" data-page="candidates">
+                            <i class="fas fa-users"></i> Candidates
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" data-page="analytics">
+                            <i class="fas fa-chart-bar"></i> Analytics
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" data-page="interviews">
+                            <i class="fas fa-calendar-check"></i> Interviews
+                        </a>
+                    </li>
+                    <li class="nav-item mt-4">
+                        <a class="nav-link" href="#">
+                            <i class="fas fa-cog"></i> Settings
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+
+            <!-- Main Content -->
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 main-content">
+                <!-- Dashboard Page -->
+                <div id="dashboard" class="page active">
+                    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                        <h1 class="h2">Dashboard</h1>
+                        <div class="btn-toolbar mb-2 mb-md-0">
+                            <div class="btn-group me-2">
+                                <button type="button" class="btn btn-sm btn-outline-secondary">
+                                    <i class="fas fa-download"></i> Export
+                                </button>
+                            </div>
+                            <button class="btn btn-primary" id="newJobBtn">
+                                <i class="fas fa-plus"></i> New Job
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Stats Cards -->
+                    <div class="row mb-4">
+                        <div class="col-md-3">
+                            <div class="card stats-card">
+                                <div class="number" id="activeJobsCount">24</div>
+                                <div class="label">Active Jobs</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card stats-card">
+                                <div class="number" id="candidatesCount">142</div>
+                                <div class="label">Candidates</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card stats-card">
+                                <div class="number" id="interviewsCount">38</div>
+                                <div class="label">Interviews</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card stats-card">
+                                <div class="number" id="matchAccuracy">92%</div>
+                                <div class="label">Match Accuracy</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recent Activity and Top Jobs -->
+                    <div class="row">
+                        <!-- Recent Activity -->
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="mb-0">Recent Activity</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="activity-feed">
+                                        <div class="activity-item">
+                                            <div class="activity-icon bg-primary">
+                                                <i class="fas fa-user-plus"></i>
+                                            </div>
+                                            <div class="activity-content">
+                                                <strong>5 new candidates</strong> added to Senior Frontend Developer position
+                                                <small class="text-muted">10 minutes ago</small>
+                                            </div>
+                                        </div>
+                                        <div class="activity-item">
+                                            <div class="activity-icon bg-success">
+                                                <i class="fas fa-check"></i>
+                                            </div>
+                                            <div class="activity-content">
+                                                Interview scheduled with <strong>Suresh Soni</strong> for tomorrow
+                                                <small class="text-muted">1 hour ago</small>
+                                            </div>
+                                        </div>
+                                        <div class="activity-item">
+                                            <div class="activity-icon bg-info">
+                                                <i class="fas fa-briefcase"></i>
+                                            </div>
+                                            <div class="activity-content">
+                                                New job posted: <strong>Backend Developer</strong>
+                                                <small class="text-muted">3 hours ago</small>
+                                            </div>
+                                        </div>
+                                        <div class="activity-item">
+                                            <div class="activity-icon bg-warning">
+                                                <i class="fas fa-exclamation"></i>
+                                            </div>
+                                            <div class="activity-content">
+                                                <strong>3 candidates</strong> require manual review
+                                                <small class="text-muted">5 hours ago</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <a href="#" class="btn btn-link mt-2">View all activity</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Top Jobs -->
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="mb-0">Top Jobs</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-hover">
+                                            <thead>
+                                                <tr>
+                                                    <th>Position</th>
+                                                    <th>Candidates</th>
+                                                    <th>Match %</th>
+                                                    <th>Status</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr>
+                                                    <td>Senior Frontend Developer</td>
+                                                    <td>24</td>
+                                                    <td>
+                                                        <div class="progress">
+                                                            <div class="progress-bar bg-success" style="width: 85%">85%</div>
+                                                        </div>
+                                                    </td>
+                                                    <td><span class="badge bg-primary">Active</span></td>
+                                                </tr>
+                                                <tr>
+                                                    <td>Data Scientist</td>
+                                                    <td>18</td>
+                                                    <td>
+                                                        <div class="progress">
+                                                            <div class="progress-bar bg-success" style="width: 78%">78%</div>
+                                                        </div>
+                                                    </td>
+                                                    <td><span class="badge bg-primary">Active</span></td>
+                                                </tr>
+                                                <tr>
+                                                    <td>DevOps Engineer</td>
+                                                    <td>12</td>
+                                                    <td>
+                                                        <div class="progress">
+                                                            <div class="progress-bar bg-warning" style="width: 65%">65%</div>
+                                                        </div>
+                                                    </td>
+                                                    <td><span class="badge bg-primary">Active</span></td>
+                                                </tr>
+                                                <tr>
+                                                    <td>UX Designer</td>
+                                                    <td>8</td>
+                                                    <td>
+                                                        <div class="progress">
+                                                            <div class="progress-bar bg-danger" style="width: 42%">42%</div>
+                                                        </div>
+                                                    </td>
+                                                    <td><span class="badge bg-secondary">Paused</span></td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <a href="#" data-page="jobs" class="btn btn-link mt-2 nav-link">View all jobs</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recent Candidates -->
+                    <div class="row mt-4">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header d-flex justify-content-between align-items-center">
+                                    <h5 class="mb-0">Recent Candidates</h5>
+                                    <div class="search-box">
+                                        <i class="fas fa-search"></i>
+                                        <input type="text" class="form-control" placeholder="Search candidates...">
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-hover">
+                                            <thead>
+                                                <tr>
+                                                    <th>Name</th>
+                                                    <th>Applied For</th>
+                                                    <th>Skills</th>
+                                                    <th>Match Score</th>
+                                                    <th>Status</th>
+                                                    <th>Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr>
+                                                    <td>
+                                                        <div class="d-flex align-items-center">
+                                                            <img src="Suresh.jpg" class="avatar me-3" alt="Suresh Soni">
+                                                            <div>
+                                                                <strong>Suresh Soni</strong>
+                                                                <div class="text-muted">soni73@gmail.com</div>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td>Senior Frontend Developer</td>
+                                                    <td>
+                                                        <span class="badge bg-light text-dark">React</span>
+                                                        <span class="badge bg-light text-dark">TypeScript</span>
+                                                        <span class="badge bg-light text-dark">Redux</span>
+                                                    </td>
+                                                    <td>
+                                                        <span class="badge bg-success">92%</span>
+                                                    </td>
+                                                    <td>
+                                                        <span class="badge bg-success">Interview Scheduled</span>
+                                                    </td>
+                                                    <td>
+                                                        <button class="btn btn-sm btn-outline-primary me-1">
+                                                            <i class="fas fa-eye"></i>
+                                                        </button>
+                                                        <button class="btn btn-sm btn-outline-success me-1">
+                                                            <i class="fas fa-envelope"></i>
+                                                        </button>
+                                                        <button class="btn btn-sm btn-outline-danger">
+                                                            <i class="fas fa-trash"></i>
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td>
+                                                        <div class="d-flex align-items-center">
+                                                            <img src="Hemant.jpg" class="avatar me-3" alt="Hemant Choudhary">
+                                                            <div>
+                                                                <strong>Hemant Choudhary</strong>
+                                                                <div class="text-muted">hemant92@gmail.com</div>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td>Senior Frontend Developer</td>
+                                                    <td>
+                                                        <span class="badge bg-light text-dark">React</span>
+                                                        <span class="badge bg-light text-dark">JavaScript</span>
+                                                        <span class="badge bg-light text-dark">Jest</span>
+                                                    </td>
+                                                    <td>
+                                                        <span class="badge bg-success">85%</span>
+                                                    </td>
+                                                    <td>
+                                                        <span class="badge bg-warning text-dark">Review Needed</span>
+                                                    </td>
+                                                    <td>
+                                                        <button class="btn btn-sm btn-outline-primary me-1">
+                                                            <i class="fas fa-eye"></i>
+                                                        </button>
+                                                        <button class="btn btn-sm btn-outline-success me-1">
+                                                            <i class="fas fa-envelope"></i>
+                                                        </button>
+                                                        <button class="btn btn-sm btn-outline-danger">
+                                                            <i class="fas fa-trash"></i>
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td>
+                                                        <div class="d-flex align-items-center">
+                                                            <img src="Divyansh.jpeg" class="avatar me-3" alt="Divyansh Singh">
+                                                            <div>
+                                                                <strong>Divyansh Singh</strong>
+                                                                <div class="text-muted">singh82@gmail.com</div>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td>Senior Frontend Developer</td>
+                                                    <td>
+                                                        <span class="badge bg-light text-dark">Angular</span>
+                                                        <span class="badge bg-light text-dark">TypeScript</span>
+                                                        <span class="badge bg-light text-dark">RxJS</span>
+                                                    </td>
+                                                    <td>
+                                                        <span class="badge bg-warning text-dark">72%</span>
+                                                    </td>
+                                                    <td>
+                                                        <span class="badge bg-info">New</span>
+                                                    </td>
+                                                    <td>
+                                                        <button class="btn btn-sm btn-outline-primary me-1">
+                                                            <i class="fas fa-eye"></i>
+                                                        </button>
+                                                        <button class="btn btn-sm btn-outline-success me-1">
+                                                            <i class="fas fa-envelope"></i>
+                                                        </button>
+                                                        <button class="btn btn-sm btn-outline-danger">
+                                                            <i class="fas fa-trash"></i>
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <a href="#" data-page="candidates" class="btn btn-link mt-2 nav-link">View all candidates</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Jobs Page -->
+                <div id="jobs" class="page">
+                    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                        <h1 class="h2">Job Postings</h1>
+                        <div class="btn-toolbar mb-2 mb-md-0">
+                            <button class="btn btn-primary" id="newJobBtnJobs">
+                                <i class="fas fa-plus"></i> New Job
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Filters -->
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <label for="departmentFilter" class="form-label">Department</label>
+                                    <select class="form-select" id="departmentFilter">
+                                        <option value="">All Departments</option>
+                                        <option value="Engineering">Engineering</option>
+                                        <option value="Design">Design</option>
+                                        <option value="Product">Product</option>
+                                        <option value="Marketing">Marketing</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="typeFilter" class="form-label">Job Type</label>
+                                    <select class="form-select" id="typeFilter">
+                                        <option value="">All Types</option>
+                                        <option value="Full-time">Full-time</option>
+                                        <option value="Part-time">Part-time</option>
+                                        <option value="Contract">Contract</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="statusFilter" class="form-label">Status</label>
+                                    <select class="form-select" id="statusFilter">
+                                        <option value="">All Statuses</option>
+                                        <option value="Active">Active</option>
+                                        <option value="Paused">Paused</option>
+                                        <option value="Closed">Closed</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">&nbsp;</label>
+                                    <button class="btn btn-primary w-100" id="applyFiltersBtn">
+                                        <i class="fas fa-filter"></i> Apply Filters
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Jobs Table -->
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">All Job Postings</h5>
+                            <div class="search-box">
+                                <i class="fas fa-search"></i>
+                                <input type="text" class="form-control" placeholder="Search jobs...">
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Job Title</th>
+                                            <th>Department</th>
+                                            <th>Type</th>
+                                            <th>Candidates</th>
+                                            <th>Date Posted</th>
+                                            <th>Status</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>
+                                                <strong>Senior Frontend Developer</strong>
+                                                <div class="text-muted">lucknow</div>
+                                            </td>
+                                            <td>Engineering</td>
+                                            <td>Full-time</td>
+                                            <td>24</td>
+                                            <td>Feb 15, 2025</td>
+                                            <td><span class="badge bg-success">Active</span></td>
+                                            <td>
+                                                <button class="btn btn-sm btn-outline-primary me-1" title="View">
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
+                                                <button class="btn btn-sm btn-outline-secondary me-1" title="Edit">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                                <button class="btn btn-sm btn-outline-danger" title="Delete">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>
+                                                <strong>Data Scientist</strong>
+                                                <div class="text-muted">Remote</div>
+                                            </td>
+                                            <td>Engineering</td>
+                                            <td>Full-time</td>
+                                            <td>18</td>
+                                            <td>Feb 20, 2025</td>
+                                            <td><span class="badge bg-success">Active</span></td>
+                                            <td>
+                                                <button class="btn btn-sm btn-outline-primary me-1" title="View">
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
+                                                <button class="btn btn-sm btn-outline-secondary me-1" title="Edit">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                                <button class="btn btn-sm btn-outline-danger" title="Delete">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>
+                                                <strong>UX Designer</strong>
+                                                <div class="text-muted">Pune</div>
+                                            </td>
+                                            <td>Design</td>
+                                            <td>Full-time</td>
+                                            <td>8</td>
+                                            <td>March 5, 2025</td>
+                                            <td><span class="badge bg-secondary">Paused</span></td>
+                                            <td>
+                                                <button class="btn btn-sm btn-outline-primary me-1" title="View">
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
+                                                <button class="btn btn-sm btn-outline-secondary me-1" title="Edit">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                                <button class="btn btn-sm btn-outline-danger" title="Delete">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>
+                                                <strong>Product Manager</strong>
+                                                <div class="text-muted">Hyderabad</div>
+                                            </td>
+                                            <td>Product</td>
+                                            <td>Full-time</td>
+                                            <td>15</td>
+                                            <td>March 15, 2025</td>
+                                            <td><span class="badge bg-success">Active</span></td>
+                                            <td>
+                                                <button class="btn btn-sm btn-outline-primary me-1" title="View">
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
+                                                <button class="btn btn-sm btn-outline-secondary me-1" title="Edit">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                                <button class="btn btn-sm btn-outline-danger" title="Delete">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>
+                                                <strong>Marketing Specialist</strong>
+                                                <div class="text-muted">Mumbai</div>
+                                            </td>
+                                            <td>Marketing</td>
+                                            <td>Part-time</td>
+                                            <td>12</td>
+                                            <td>March 25, 2025</td>
+                                            <td><span class="badge bg-success">Active</span></td>
+                                            <td>
+                                                <button class="btn btn-sm btn-outline-primary me-1" title="View">
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
+                                                <button class="btn btn-sm btn-outline-secondary me-1" title="Edit">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                                <button class="btn btn-sm btn-outline-danger" title="Delete">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <nav aria-label="Page navigation" class="mt-4">
+                                <ul class="pagination justify-content-center">
+                                    <li class="page-item disabled">
+                                        <a class="page-link" href="#" tabindex="-1">Previous</a>
+                                    </li>
+                                    <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                                    <li class="page-item"><a class="page-link" href="#">2</a></li>
+                                    <li class="page-item"><a class="page-link" href="#">3</a></li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="#">Next</a>
+                                    </li>
+                                </ul>
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Candidates Page -->
+                <div id="candidates" class="page">
+                    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                        <h1 class="h2">Candidates</h1>
+                        <div class="btn-toolbar mb-2 mb-md-0">
+                            <button class="btn btn-primary">
+                                <i class="fas fa-plus"></i> Add Candidate
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Filters and Search -->
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <label for="jobFilter" class="form-label">Job Position</label>
+                                    <select class="form-select" id="jobFilter">
+                                        <option value="">All Positions</option>
+                                        <option value="Senior Frontend Developer">Senior Frontend Developer</option>
+                                        <option value="Data Scientist">Data Scientist</option>
+                                        <option value="UX Designer">UX Designer</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="statusFilter" class="form-label">Status</label>
+                                    <select class="form-select" id="statusFilter">
+                                        <option value="">All Statuses</option>
+                                        <option value="New">New</option>
+                                        <option value="Review">Review Needed</option>
+                                        <option value="Interview">Interview Scheduled</option>
+                                        <option value="Hired">Hired</option>
+                                        <option value="Rejected">Rejected</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="matchFilter" class="form-label">Match Score</label>
+                                    <select class="form-select" id="matchFilter">
+                                        <option value="">All Scores</option>
+                                        <option value="high">High (80-100%)</option>
+                                        <option value="medium">Medium (60-79%)</option>
+                                        <option value="low">Low (0-59%)</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Candidates List -->
+                    <div class="row">
+                        <!-- Candidate List Column -->
+                        <div class="col-md-5">
+                            <div class="card">
+                                <div class="card-header d-flex justify-content-between align-items-center">
+                                    <h5 class="mb-0">All Candidates</h5>
+                                    <div class="search-box">
+                                        <i class="fas fa-search"></i>
+                                        <input type="text" class="form-control" placeholder="Search candidates...">
+                                    </div>
+                                </div>
+                                <div class="card-body p-0">
+                                    <div class="list-group list-group-flush">
+                                        <a href="#" class="list-group-item list-group-item-action active">
+                                            <div class="d-flex align-items-center">
+                                                <img src="Suresh.jpg" class="avatar me-3" alt="Suresh Soni">
+                                                <div>
+                                                    <strong>Suresh Soni</strong>
+                                                    <div class="text-muted">Senior Frontend Developer • 92% match</div>
+                                                    <span class="badge bg-success mt-1">Interview Scheduled</span>
+                                                </div>
+                                            </div>
+                                        </a>
+                                        <a href="#" class="list-group-item list-group-item-action">
+                                            <div class="d-flex align-items-center">
+                                                <img src="Hemant.jpg" class="avatar me-3" alt="Hemant Choudhary">
+                                                <div>
+                                                    <strong>Hemant Choudhary</strong>
+                                                    <div class="text-muted">Senior Frontend Developer • 85% match</div>
+                                                    <span class="badge bg-warning text-dark mt-1">Review Needed</span>
+                                                </div>
+                                            </div>
+                                        </a>
+                                        <a href="#" class="list-group-item list-group-item-action">
+                                            <div class="d-flex align-items-center">
+                                                <img src="Divyansh.jpeg" class="avatar me-3" alt="Divyansh Singh">
+                                                <div>
+                                                    <strong>Divyansh Singh</strong>
+                                                    <div class="text-muted">Senior Frontend Developer • 72% match</div>
+                                                    <span class="badge bg-info mt-1">New</span>
+                                                </div>
+                                            </div>
+                                        </a>
+                                        <a href="#" class="list-group-item list-group-item-action">
+                                            <div class="d-flex align-items-center">
+                                                <img src="Priyanka.jpg" class="avatar me-3" alt="Priyanka Yadav">
+                                                <div>
+                                                    <strong>Priyanka Yadav</strong>
+                                                    <div class="text-muted">Senior Frontend Developer • 65% match</div>
+                                                    <span class="badge bg-secondary mt-1">On Hold</span>
+                                                </div>
+                                            </div>
+                                        </a>
+                                        <a href="#" class="list-group-item list-group-item-action">
+                                            <div class="d-flex align-items-center">
+                                                <img src="Shivraj.jpeg" class="avatar me-3" alt="Shivraj Singh">
+                                                <div>
+                                                    <strong>Shivraj Singh</strong>
+                                                    <div class="text-muted">Senior Frontend Developer • 48% match</div>
+                                                    <span class="badge bg-danger mt-1">Rejected</span>
+                                                </div>
+                                            </div>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Candidate Detail Column -->
+                        <div class="col-md-7">
+                            <div class="card candidate-detail-card">
+                                <div class="card-header">
+                                    <h5 class="mb-0">Candidate Details</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="text-center mb-4">
+                                        <img src="Suresh.jpg" class="avatar-lg mb-3" alt="Suresh Soni">
+                                        <h3>Suresh Soni</h3>
+                                        <p class="text-muted">Senior Frontend Developer</p>
+                                        <div class="match-score text-success">92% Match</div>
+                                    </div>
+
+                                    <div class="row mb-4">
+                                        <div class="col-md-6">
+                                            <p><i class="fas fa-envelope me-2"></i> soni73@gmail.com</p>
+                                            <p><i class="fas fa-phone me-2"></i> 7357833921</p>
+                                            <p><i class="fas fa-map-marker-alt me-2"></i> Lucknow</p>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <p><i class="fas fa-briefcase me-2"></i> 7 years experience</p>
+                                            <p><i class="fas fa-graduation-cap me-2"></i> BS Computer Science, IIT Lucknow</p>
+                                            <p><i class="fas fa-link me-2"></i> <a href="#">linkedin.com/in/suresh</a></p>
+                                        </div>
+                                    </div>
+
+                                    <h5 class="mb-3">Skills</h5>
+                                    <div class="mb-4">
+                                        <span class="badge bg-primary skill-tag">Cyber Security</span>
+                                        <span class="badge bg-primary skill-tag">c++</span>
+                                        <span class="badge bg-primary skill-tag">c</span>
+                                        <span class="badge bg-primary skill-tag">JavaScript</span>
+                                        <span class="badge bg-primary skill-tag">HTML/CSS</span>
+                                        <span class="badge bg-primary skill-tag">Python</span>
+                                        <span class="badge bg-primary skill-tag">DSA</span>
+                                    </div>
+
+                                    <h5 class="mb-3">AI Matching Analysis</h5>
+                                    <div class="mb-4">
+                                        <div class="mb-2">
+                                            <strong>Skills Match</strong>
+                                            <div class="progress mt-1">
+                                                <div class="progress-bar bg-success" style="width: 95%">95%</div>
+                                            </div>
+                                        </div>
+                                        <div class="mb-2">
+                                            <strong>Experience Match</strong>
+                                            <div class="progress mt-1">
+                                                <div class="progress-bar bg-success" style="width: 90%">90%</div>
+                                            </div>
+                                        </div>
+                                        <div class="mb-2">
+                                            <strong>Education Match</strong>
+                                            <div class="progress mt-1">
+                                                <div class="progress-bar bg-success" style="width: 85%">85%</div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <h5 class="mb-3">Resume Preview</h5>
+                                    <div class="resume-preview mb-4">
+                                        <iframe src="Google-Resume .pdf" width="100%" height="100%"></iframe>
+                                    </div>
+
+                                    <div class="d-flex justify-content-between">
+                                        <button class="btn btn-success">
+                                            <i class="fas fa-calendar-check me-2"></i> Schedule Interview
+                                        </button>
+                                        <button class="btn btn-primary">
+                                            <i class="fas fa-envelope me-2"></i> Send Message
+                                        </button>
+                                        <button class="btn btn-danger">
+                                            <i class="fas fa-times me-2"></i> Reject
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Analytics Page -->
+                <div id="analytics" class="page">
+                    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                        <h1 class="h2">Analytics</h1>
+                        <div class="btn-toolbar mb-2 mb-md-0">
+                            <div class="btn-group me-2">
+                                <button type="button" class="btn btn-sm btn-outline-secondary">Export</button>
+                            </div>
+                            <div class="dropdown">
+                                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="fas fa-calendar"></i> Last 30 days
+                                </button>
+                                <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                                    <li><a class="dropdown-item" href="#">Last 7 days</a></li>
+                                    <li><a class="dropdown-item" href="#">Last 30 days</a></li>
+                                    <li><a class="dropdown-item" href="#">Last 90 days</a></li>
+                                    <li><a class="dropdown-item" href="#">This year</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Metrics Overview -->
+                    <div class="row mb-4">
+                        <div class="col-md-3">
+                            <div class="metric-card">
+                                <div class="metric-value">142</div>
+                                <div class="metric-label">Total Candidates</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="metric-card">
+                                <div class="metric-value">38</div>
+                                <div class="metric-label">Interviews</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="metric-card">
+                                <div class="metric-value">92%</div>
+                                <div class="metric-label">Match Accuracy</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="metric-card">
+                                <div class="metric-value">24.5</div>
+                                <div class="metric-label">Avg. Days to Hire</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Charts Row 1 -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="mb-0">Candidate Match Distribution</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="chart-container">
+                                        <canvas id="matchDistributionChart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="mb-0">Candidates by Source</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="chart-container">
+                                        <canvas id="candidateSourceChart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Charts Row 2 -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="mb-0">Hiring Pipeline</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="chart-container">
+                                        <canvas id="hiringPipelineChart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="mb-0">Time to Fill Positions</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="chart-container">
+                                        <canvas id="timeToFillChart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- AI Insights -->
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="mb-0">AI-Generated Insights</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-4">
+                                            <div class="insight-card">
+                                                <h5><i class="fas fa-lightbulb me-2"></i> Top Skill Gap</h5>
+                                                <p>35% of rejected candidates lacked experience with TypeScript, which is a key requirement for your frontend positions.</p>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="insight-card">
+                                                <h5><i class="fas fa-lightbulb me-2"></i> Hiring Trend</h5>
+                                                <p>Your time-to-hire has improved by 18% compared to last quarter, indicating more efficient screening.</p>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="insight-card">
+                                                <h5><i class="fas fa-lightbulb me-2"></i> Suggestion</h5>
+                                                <p>Consider adding more behavioral questions to your interview process, as technical skills alone don't predict success.</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Interviews Page -->
+                <div id="interviews" class="page">
+                    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                        <h1 class="h2">Interview Scheduling</h1>
+                        <div class="btn-toolbar mb-2 mb-md-0">
+                            <button class="btn btn-primary" id="newInterviewBtn">
+                                <i class="fas fa-plus"></i> Schedule Interview
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Calendar View -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">Interview Calendar</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="calendar-container">
+                                <div id="calendar"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Upcoming Interviews -->
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="mb-0">Upcoming Interviews</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="list-group">
+                                        <div class="list-group-item interview-card upcoming">
+                                            <div class="d-flex justify-content-between">
+                                                <div>
+                                                    <h6>Senior Frontend Developer Interview</h6>
+                                                    <p class="mb-1"><strong>Suresh Soni</strong> • 92% match</p>
+                                                    <small class="text-muted"><i class="fas fa-calendar-alt me-1"></i> Today, 2:00 PM - 3:00 PM</small>
+                                                </div>
+                                                <div class="text-end">
+                                                    <button class="btn btn-sm btn-outline-primary me-1">
+                                                        <i class="fas fa-video"></i>
+                                                    </button>
+                                                    <button class="btn btn-sm btn-outline-secondary">
+                                                        <i class="fas fa-edit"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="list-group-item interview-card upcoming">
+                                            <div class="d-flex justify-content-between">
+                                                <div>
+                                                    <h6>Data Scientist Interview</h6>
+                                                    <p class="mb-1"><strong>Hemant Choudhary</strong> • 88% match</p>
+                                                    <small class="text-muted"><i class="fas fa-calendar-alt me-1"></i> Tomorrow, 10:00 AM - 11:00 AM</small>
+                                                </div>
+                                                <div class="text-end">
+                                                    <button class="btn btn-sm btn-outline-primary me-1">
+                                                        <i class="fas fa-video"></i>
+                                                    </button>
+                                                    <button class="btn btn-sm btn-outline-secondary">
+                                                        <i class="fas fa-edit"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="list-group-item interview-card upcoming">
+                                            <div class="d-flex justify-content-between">
+                                                <div>
+                                                    <h6>UX Designer Interview</h6>
+                                                    <p class="mb-1"><strong>Divyansh Singh</strong> • 85% match</p>
+                                                    <small class="text-muted"><i class="fas fa-calendar-alt me-1"></i> Tomorrow, 1:30 PM - 2:30 PM</small>
+                                                </div>
+                                                <div class="text-end">
+                                                    <button class="btn btn-sm btn-outline-primary me-1">
+                                                        <i class="fas fa-video"></i>
+                                                    </button>
+                                                    <button class="btn btn-sm btn-outline-secondary">
+                                                        <i class="fas fa-edit"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Recent Interviews -->
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="mb-0">Recent Interviews</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="list-group">
+                                        <div class="list-group-item interview-card completed">
+                                            <div class="d-flex justify-content-between">
+                                                <div>
+                                                    <h6>Product Manager Interview</h6>
+                                                    <p class="mb-1"><strong>Priyanka Yadav</strong> • 90% match</p>
+                                                    <small class="text-muted"><i class="fas fa-calendar-alt me-1"></i> March 30, 2025</small>
+                                                </div>
+                                                <div class="text-end">
+                                                    <div class="feedback-rating">
+                                                        <i class="fas fa-star"></i>
+                                                        <i class="fas fa-star"></i>
+                                                        <i class="fas fa-star"></i>
+                                                        <i class="fas fa-star"></i>
+                                                        <i class="fas fa-star-half-alt"></i>
+                                                    </div>
+                                                    <button class="btn btn-sm btn-outline-primary mt-1">
+                                                        View Feedback
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="list-group-item interview-card completed">
+                                            <div class="d-flex justify-content-between">
+                                                <div>
+                                                    <h6>DevOps Engineer Interview</h6>
+                                                    <p class="mb-1"><strong>Shivraj Singh</strong> • 87% match</p>
+                                                    <small class="text-muted"><i class="fas fa-calendar-alt me-1"></i> April 1, 2025</small>
+                                                </div>
+                                                <div class="text-end">
+                                                    <div class="feedback-rating">
+                                                        <i class="fas fa-star"></i>
+                                                        <i class="fas fa-star"></i>
+                                                        <i class="fas fa-star"></i>
+                                                        <i class="fas fa-star"></i>
+                                                        <i class="far fa-star"></i>
+                                                    </div>
+                                                    <button class="btn btn-sm btn-outline-primary mt-1">
+                                                        View Feedback
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="list-group-item interview-card canceled">
+                                            <div class="d-flex justify-content-between">
+                                                <div>
+                                                    <h6>Marketing Specialist Interview</h6>
+                                                    <p class="mb-1"><strong>Harsh Kumar</strong> • 82% match</p>
+                                                    <small class="text-muted"><i class="fas fa-calendar-alt me-1"></i> April 2, 2025 (Canceled)</small>
+                                                </div>
+                                                <div class="text-end">
+                                                    <button class="btn btn-sm btn-outline-secondary">
+                                                        Reschedule
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- New Job Modal -->
+    <div class="modal fade" id="newJobModal" tabindex="-1" aria-labelledby="newJobModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="newJobModalLabel">Create New Job Posting</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="newJobForm">
+                        <div class="mb-3">
+                            <label for="jobTitle" class="form-label">Job Title</label>
+                            <input type="text" class="form-control" id="jobTitle" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="jobDepartment" class="form-label">Department</label>
+                            <select class="form-select" id="jobDepartment" required>
+                                <option value="">Select Department</option>
+                                <option value="Engineering">Engineering</option>
+                                <option value="Design">Design</option>
+                                <option value="Product">Product</option>
+                                <option value="Marketing">Marketing</option>
+                                <option value="Sales">Sales</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="jobType" class="form-label">Employment Type</label>
+                            <select class="form-select" id="jobType" required>
+                                <option value="">Select Type</option>
+                                <option value="Full-time">Full-time</option>
+                                <option value="Part-time">Part-time</option>
+                                <option value="Contract">Contract</option>
+                                <option value="Internship">Internship</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="jobLocation" class="form-label">Location</label>
+                            <input type="text" class="form-control" id="jobLocation" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="jobDescription" class="form-label">Job Description</label>
+                            <textarea class="form-control" id="jobDescription" rows="5" required></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="jobRequirements" class="form-label">Requirements</label>
+                            <textarea class="form-control" id="jobRequirements" rows="3" required></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Key Skills</label>
+                            <div class="skills-input">
+                                <input type="text" class="form-control" id="jobSkills" placeholder="Add skills (separate by commas)">
+                                <div class="skills-tags mt-2"></div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="saveJobBtn">Post Job</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- New Interview Modal -->
+    <div class="modal fade" id="newInterviewModal" tabindex="-1" aria-labelledby="newInterviewModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="newInterviewModalLabel">Schedule New Interview</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="newInterviewForm">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="interviewCandidate" class="form-label">Candidate</label>
+                                    <select class="form-select" id="interviewCandidate" required>
+                                        <option value="">Select Candidate</option>
+                                        <option value="1">Suresh Soni (Senior Frontend Developer - 92%)</option>
+                                        <option value="2">Hemant Choudhary (Senior Frontend Developer - 85%)</option>
+                                        <option value="3">Divyansh Singh (Senior Frontend Developer - 72%)</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="interviewJob" class="form-label">Job Position</label>
+                                    <select class="form-select" id="interviewJob" required>
+                                        <option value="">Select Position</option>
+                                        <option value="1">Senior Frontend Developer</option>
+                                        <option value="2">Data Scientist</option>
+                                        <option value="3">UX Designer</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="interviewType" class="form-label">Interview Type</label>
+                                    <select class="form-select" id="interviewType" required>
+                                        <option value="">Select Type</option>
+                                        <option value="phone">Phone Screen</option>
+                                        <option value="technical">Technical Interview</option>
+                                        <option value="onsite">Onsite Interview</option>
+                                        <option value="video">Video Interview</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="interviewDate" class="form-label">Date</label>
+                                    <input type="date" class="form-control" id="interviewDate" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="interviewTime" class="form-label">Time</label>
+                                    <input type="time" class="form-control" id="interviewTime" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="interviewDuration" class="form-label">Duration</label>
+                                    <select class="form-select" id="interviewDuration" required>
+                                        <option value="30">30 minutes</option>
+                                        <option value="60" selected>60 minutes</option>
+                                        <option value="90">90 minutes</option>
+                                        <option value="120">120 minutes</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="interviewers" class="form-label">Interviewers</label>
+                            <select class="form-select" id="interviewers" multiple>
+                                <option value="1">Sanjiv Kumar (Hiring Manager)</option>
+                                <option value="2">Kamlesh Samota (Tech Lead)</option>
+                                <option value="3">Mukul Sharma (Team Member)</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="interviewNotes" class="form-label">Notes</label>
+                            <textarea class="form-control" id="interviewNotes" rows="3"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="saveInterviewBtn">Schedule Interview</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- FullCalendar JS -->
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize tooltips
+            const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+
+            // Page Navigation
+            const navLinks = document.querySelectorAll('.nav-link[data-page]');
+            navLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    // Update active state in sidebar
+                    navLinks.forEach(navLink => navLink.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // Show the selected page
+                    const pageId = this.getAttribute('data-page');
+                    document.querySelectorAll('.page').forEach(page => {
+                        page.classList.remove('active');
+                    });
+                    document.getElementById(pageId).classList.add('active');
+                    
+                    // Initialize charts if on analytics page
+                    if (pageId === 'analytics') {
+                        initializeCharts();
+                    }
+                    
+                    // Initialize calendar if on interviews page
+                    if (pageId === 'interviews') {
+                        initializeCalendar();
+                    }
+                });
+            });
+
+            // New Job Button
+            const newJobBtn = document.getElementById('newJobBtn') || document.getElementById('newJobBtnJobs');
+            const newJobModal = new bootstrap.Modal(document.getElementById('newJobModal'));
+            
+            if (newJobBtn) {
+                newJobBtn.addEventListener('click', function() {
+                    newJobModal.show();
+                });
+            }
+
+            // Skills input functionality
+            const jobSkillsInput = document.getElementById('jobSkills');
+            const skillsTagsContainer = document.querySelector('.skills-tags');
+            
+            if (jobSkillsInput) {
+                jobSkillsInput.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter' || e.key === ',') {
+                        e.preventDefault();
+                        const skill = this.value.trim();
+                        if (skill) {
+                            addSkillTag(skill);
+                            this.value = '';
+                        }
+                    }
+                });
+            }
+
+            function addSkillTag(skill) {
+                const tag = document.createElement('span');
+                tag.className = 'badge bg-light text-dark me-2 mb-2';
+                tag.innerHTML = `${skill} <button type="button" class="btn-close btn-close-white btn-sm ms-1" aria-label="Remove"></button>`;
+                
+                const closeBtn = tag.querySelector('.btn-close');
+                closeBtn.addEventListener('click', function() {
+                    tag.remove();
+                });
+                
+                skillsTagsContainer.appendChild(tag);
+            }
+
+            // Save Job Button
+            const saveJobBtn = document.getElementById('saveJobBtn');
+            if (saveJobBtn) {
+                saveJobBtn.addEventListener('click', function() {
+                    // Here you would typically send the data to your backend
+                    alert('Job posted successfully!');
+                    newJobModal.hide();
+                    document.getElementById('newJobForm').reset();
+                    skillsTagsContainer.innerHTML = '';
+                });
+            }
+
+            // Sample data for dashboard counters
+            function updateCounters() {
+                // In a real app, these would come from an API
+                const counters = [
+                    { id: 'activeJobsCount', target: 24, duration: 2000 },
+                    { id: 'candidatesCount', target: 142, duration: 2000 },
+                    { id: 'interviewsCount', target: 38, duration: 2000 }
+                ];
+
+                counters.forEach(counter => {
+                    const element = document.getElementById(counter.id);
+                    if (element) {
+                        animateCounter(element, 0, counter.target, counter.duration);
+                    }
+                });
+            }
+
+            function animateCounter(element, start, end, duration) {
+                let startTimestamp = null;
+                const step = (timestamp) => {
+                    if (!startTimestamp) startTimestamp = timestamp;
+                    const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+                    element.innerHTML = Math.floor(progress * (end - start) + start);
+                    if (progress < 1) {
+                        window.requestAnimationFrame(step);
+                    }
+                };
+                window.requestAnimationFrame(step);
+            }
+
+            // Initialize counters
+            updateCounters();
+
+            // Candidate row click handler
+            const candidateRows = document.querySelectorAll('tbody tr');
+            candidateRows.forEach(row => {
+                row.addEventListener('click', function(e) {
+                    // Don't trigger if clicking on a button or link
+                    if (e.target.tagName === 'BUTTON' || e.target.tagName === 'A' || e.target.closest('button') || e.target.closest('a')) {
+                        return;
+                    }
+                    
+                    // In a real app, this would navigate to the candidate detail page
+                    console.log('Viewing candidate:', this.querySelector('strong').textContent);
+                });
+            });
+
+            // Initialize charts for analytics page
+            function initializeCharts() {
+                // Match Distribution Chart
+                const matchCtx = document.getElementById('matchDistributionChart').getContext('2d');
+                const matchChart = new Chart(matchCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['0-39%', '40-59%', '60-79%', '80-100%'],
+                        datasets: [{
+                            label: 'Number of Candidates',
+                            data: [12, 28, 65, 37],
+                            backgroundColor: [
+                                'rgba(231, 76, 60, 0.7)',
+                                'rgba(243, 156, 18, 0.7)',
+                                'rgba(52, 152, 219, 0.7)',
+                                'rgba(46, 204, 113, 0.7)'
+                            ],
+                            borderColor: [
+                                'rgba(231, 76, 60, 1)',
+                                'rgba(243, 156, 18, 1)',
+                                'rgba(52, 152, 219, 1)',
+                                'rgba(46, 204, 113, 1)'
+                            ],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+
+                // Candidate Source Chart
+                const sourceCtx = document.getElementById('candidateSourceChart').getContext('2d');
+                const sourceChart = new Chart(sourceCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['LinkedIn', 'Company Website', 'Referrals', 'Job Boards', 'Other'],
+                        datasets: [{
+                            data: [45, 20, 15, 15, 5],
+                            backgroundColor: [
+                                'rgba(52, 152, 219, 0.7)',
+                                'rgba(155, 89, 182, 0.7)',
+                                'rgba(46, 204, 113, 0.7)',
+                                'rgba(241, 196, 15, 0.7)',
+                                'rgba(149, 165, 166, 0.7)'
+                            ],
+                            borderColor: [
+                                'rgba(52, 152, 219, 1)',
+                                'rgba(155, 89, 182, 1)',
+                                'rgba(46, 204, 113, 1)',
+                                'rgba(241, 196, 15, 1)',
+                                'rgba(149, 165, 166, 1)'
+                            ],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'right',
+                            }
+                        }
+                    }
+                });
+
+                // Hiring Pipeline Chart
+                const pipelineCtx = document.getElementById('hiringPipelineChart').getContext('2d');
+                const pipelineChart = new Chart(pipelineCtx, {
+                    type: 'line',
+                    data: {
+                        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                        datasets: [
+                            {
+                                label: 'Applicants',
+                                data: [120, 150, 180, 90, 110, 130],
+                                borderColor: 'rgba(52, 152, 219, 1)',
+                                backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                                tension: 0.3,
+                                fill: true
+                            },
+                            {
+                                label: 'Interviews',
+                                data: [40, 50, 60, 30, 45, 55],
+                                borderColor: 'rgba(46, 204, 113, 1)',
+                                backgroundColor: 'rgba(46, 204, 113, 0.1)',
+                                tension: 0.3,
+                                fill: true
+                            },
+                            {
+                                label: 'Hires',
+                                data: [8, 12, 15, 6, 10, 14],
+                                borderColor: 'rgba(155, 89, 182, 1)',
+                                backgroundColor: 'rgba(155, 89, 182, 0.1)',
+                                tension: 0.3,
+                                fill: true
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+
+                // Time to Fill Chart
+                const timeCtx = document.getElementById('timeToFillChart').getContext('2d');
+                const timeChart = new Chart(timeCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Engineering', 'Design', 'Product', 'Marketing', 'Sales'],
+                        datasets: [{
+                            label: 'Average Days to Fill',
+                            data: [28, 21, 24, 18, 15],
+                            backgroundColor: 'rgba(52, 152, 219, 0.7)',
+                            borderColor: 'rgba(52, 152, 219, 1)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Initialize calendar for interviews page
+            function initializeCalendar() {
+                const calendarEl = document.getElementById('calendar');
+                if (calendarEl) {
+                    const calendar = new FullCalendar.Calendar(calendarEl, {
+                        initialView: 'dayGridMonth',
+                        headerToolbar: {
+                            left: 'prev,next today',
+                            center: 'title',
+                            right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                        },
+                        events: [
+                            {
+                                title: 'Suresh Soni Interview',
+                                start: new Date(),
+                                end: new Date(new Date().setHours(new Date().getHours() + 1)),
+                                color: '#2ecc71',
+                                textColor: 'white'
+                            },
+                            {
+                                title: 'Hemant Choudhary Interview',
+                                start: new Date(new Date().setDate(new Date().getDate() + 1)),
+                                end: new Date(new Date().setDate(new Date().getDate() + 1)),
+                                color: '#2ecc71',
+                                textColor: 'white'
+                            },
+                            {
+                                title: 'Divyansh Singh Interview',
+                                start: new Date(new Date().setDate(new Date().getDate() + 1)),
+                                end: new Date(new Date().setDate(new Date().getDate() + 1)),
+                                color: '#2ecc71',
+                                textColor: 'white'
+                            },
+                            {
+                                title: 'Priyanka Yadav Interview',
+                                start: '2023-05-20',
+                                end: '2023-05-20',
+                                color: '#7f8c8d',
+                                textColor: 'white'
+                            }
+                        ]
+                    });
+                    calendar.render();
+                }
+            }
+
+            // New Interview Button
+            const newInterviewBtn = document.getElementById('newInterviewBtn');
+            const newInterviewModal = new bootstrap.Modal(document.getElementById('newInterviewModal'));
+            
+            if (newInterviewBtn) {
+                newInterviewBtn.addEventListener('click', function() {
+                    newInterviewModal.show();
+                });
+            }
+
+            // Save Interview Button
+            const saveInterviewBtn = document.getElementById('saveInterviewBtn');
+            if (saveInterviewBtn) {
+                saveInterviewBtn.addEventListener('click', function() {
+                    // Here you would typically send the data to your backend
+                    alert('Interview scheduled successfully!');
+                    newInterviewModal.hide();
+                    document.getElementById('newInterviewForm').reset();
+                });
+            }
+        });
+    </script>
+</body>
+</html>
